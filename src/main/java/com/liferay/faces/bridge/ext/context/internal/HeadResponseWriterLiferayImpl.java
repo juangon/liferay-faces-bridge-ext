@@ -21,8 +21,10 @@ import javax.faces.context.FacesContext;
 import javax.faces.context.ResponseWriter;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.jsp.JspFactory;
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.PageContext;
 import javax.servlet.jsp.tagext.BodyContent;
@@ -34,6 +36,7 @@ import com.liferay.faces.util.jsp.PageContextFactory;
 import com.liferay.faces.util.logging.Logger;
 import com.liferay.faces.util.logging.LoggerFactory;
 
+import com.liferay.portal.kernel.servlet.JSPSupportServlet;
 import com.liferay.portal.kernel.util.PortalUtil;
 
 
@@ -71,8 +74,16 @@ public class HeadResponseWriterLiferayImpl extends HeadResponseWriterBase {
 
 		// Invoke the Liferay HtmlTopTag class directly (rather than using liferay-util:html-top from a JSP).
 		HtmlTopTag htmlTopTag = new HtmlTopTag();
-		PageContext stringPageContext = PageContextFactory.getStringPageContextInstance(httpServletRequest,
-				httpServletResponse, elContext);
+
+		JspFactory jspFactory = JspFactory.getDefaultFactory();
+
+		ServletContext servletContext = httpServletRequest.getSession().getServletContext();
+
+		PageContext wrappedPageContext = jspFactory.getPageContext(new JSPSupportServlet(servletContext),
+				httpServletRequest, httpServletResponse, null, false, 0, false);
+
+		PageContext stringPageContext = PageContextFactory.getStringPageContextInstance(elContext, wrappedPageContext);
+
 		htmlTopTag.setPageContext(stringPageContext);
 		htmlTopTag.doStartTag();
 
